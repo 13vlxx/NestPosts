@@ -10,6 +10,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/loginDto';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
+import { DeleteAccountDto } from './dto/deleteAccountDto';
+import { ChangePasswordDto } from './dto/changePasswordDto';
 
 @Injectable()
 export class AuthService {
@@ -42,11 +47,11 @@ export class AuthService {
       throw new UnauthorizedException("Password doesn't match");
 
     const payload = {
-      subscriber: user.username,
+      subscriber: user.userId,
       email: user.email,
     };
     const token = this.jwtService.sign(payload, {
-      expiresIn: 'h2',
+      expiresIn: '1d',
       secret: this.configService.get('SECRET_KEY'),
     });
 
@@ -56,6 +61,41 @@ export class AuthService {
         userId: user.userId,
         token,
       },
+    };
+  }
+
+  async deleteAccount(userId: number, deleteAccountDto: DeleteAccountDto) {
+    const { password } = deleteAccountDto;
+    const user = await this.prismaService.user.findUnique({
+      where: { userId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    const arePasswordMatching = await bcrypt.compare(password, user.password);
+    if (!arePasswordMatching)
+      throw new UnauthorizedException("Password doesn't match");
+    await this.prismaService.user.delete({ where: { userId } });
+    return {
+      status: 'ok',
+      message: 'User successfully deleted',
+    };
+  }
+
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const { password } = changePasswordDto;
+    const user = await this.prismaService.user.findUnique({
+      where: { userId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    const hash = await bcrypt.hash(password, 10);
+    await this.prismaService.user.update({
+      where: { userId },
+      data: {
+        password: hash,
+      },
+    });
+    return {
+      status: 'ok',
+      message: 'password updated successfully',
     };
   }
 }
