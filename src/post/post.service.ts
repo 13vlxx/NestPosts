@@ -10,6 +10,7 @@ import { NewPostDto } from './dto/newPostDto';
 export class PostService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  //TODO fetch nombre de commentaire par post
   async fetchPosts() {
     return await this.prismaService.post.findMany({
       include: {

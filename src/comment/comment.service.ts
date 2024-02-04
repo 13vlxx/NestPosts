@@ -14,12 +14,12 @@ export class CommentService {
   async newComment(userId: number, newCommentDto: NewCommentDto) {
     const { content, postId } = newCommentDto;
     const post = await this.prismaService.post.findUnique({
-      where: { postId: postId },
+      where: { postId },
     });
     if (!post) throw new NotFoundException('Post not found');
     const userAlreadyCommentedThat = await this.prismaService.comment.findFirst(
       {
-        where: { postId, createdBy: userId, content },
+        where: { content, postId, createdBy: userId },
       },
     );
     if (userAlreadyCommentedThat)
