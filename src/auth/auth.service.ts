@@ -4,17 +4,16 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RegisterDto } from './dto/registerDto';
+import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from './dto/loginDto';
+import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { DeleteAccountDto } from './dto/deleteAccountDto';
-import { ChangePasswordDto } from './dto/changePasswordDto';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
+import { UsersRepository } from 'src/users/users.repository';
+import { UsersMapper } from 'src/users/users.mapper';
 
 @Injectable()
 export class AuthService {
@@ -22,19 +21,21 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly usersRepository: UsersRepository,
+    private readonly usersMapper: UsersMapper,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    const { email, username, password } = registerDto;
-    const user = await this.prismaService.user.findUnique({ where: { email } });
-    if (user) throw new ConflictException('Account already exists');
-    const hash = await bcrypt.hash(password, 10);
-    await this.prismaService.user.create({
-      data: { email, username, password: hash },
-    });
+  async findAll() {
+    const users = await this.usersRepository.getAll();
     return {
-      status: 'ok',
-      message: 'Account created successfully',
+      users: this.usersMapper.toGetUsersDtoArray(users),
+    };
+  }
+
+  async register(registerDto: RegisterDto) {
+    const user = await this.usersRepository.create(registerDto);
+    return {
+      user: this.usersMapper.toGetUserDto(user),
     };
   }
 

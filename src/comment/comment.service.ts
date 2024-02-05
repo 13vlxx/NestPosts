@@ -4,8 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { NewCommentDto } from './dto/newCommentDto';
-import { NewPostDto } from 'src/post/dto/newPostDto';
+import { NewCommentDto } from './dto/newComment.dto';
 
 @Injectable()
 export class CommentService {

@@ -11,9 +11,11 @@ import {
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuard } from '@nestjs/passport';
-import { NewPostDto } from './dto/newPostDto';
+import { NewPostDto } from './dto/newPost.dto';
 import { Request } from 'express';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Posts')
 @Controller('posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -23,6 +25,7 @@ export class PostController {
     return this.postService.fetchPosts();
   }
 
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('new-post')
   newPost(@Req() request: Request, @Body() newPostDto: NewPostDto) {
@@ -30,6 +33,7 @@ export class PostController {
     return this.postService.newPost(userId, newPostDto);
   }
 
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Delete('delete/:id')
   deletePost(

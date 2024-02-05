@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Post,
   Put,
   Req,
@@ -10,14 +11,23 @@ import {
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
-import { RegisterDto } from './dto/registerDto';
-import { LoginDto } from './dto/loginDto';
-import { DeleteAccountDto } from './dto/deleteAccountDto';
-import { ChangePasswordDto } from './dto/changePasswordDto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UsersService } from 'src/users/users.service';
 
+@ApiTags('Authentications')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get()
+  getAll() {
+    return this.authService.findAll();
+  }
+
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
@@ -28,6 +38,7 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('change-password')
   changePassword(
@@ -38,6 +49,7 @@ export class AuthController {
     return this.authService.changePassword(userId, changePasswordDto);
   }
 
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Delete('delete')
   deleteAccount(

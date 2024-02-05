@@ -4,13 +4,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { NewPostDto } from './dto/newPostDto';
+import { NewPostDto } from './dto/newPost.dto';
 
 @Injectable()
 export class PostService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  //TODO fetch nombre de commentaire par post
   async fetchPosts() {
     return await this.prismaService.post.findMany({
       include: {
