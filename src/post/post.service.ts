@@ -4,59 +4,35 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { NewPostDto } from './dto/newPost.dto';
+import { NewPostDto } from './_utils/dto/requests/newPost.dto';
+import { PostsRepository } from './posts.repository';
+import { PostMapper } from './post.mapper';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly postsRepository: PostsRepository,
+    private readonly postMapper: PostMapper,
+  ) {}
 
   async fetchPosts() {
-    return await this.prismaService.post.findMany({
-      include: {
-        user: {
-          select: {
-            userId: true,
-            username: true,
-            password: false,
-          },
-        },
-        comments: {
-          include: {
-            user: {
-              select: {
-                userId: true,
-                username: true,
-                password: false,
-              },
-            },
-          },
-        },
-      },
-    });
+    return await this.postsRepository.findAll();
   }
 
   async newPost(userId: number, newPostDto: NewPostDto) {
-    const { title, description } = newPostDto;
-    await this.prismaService.post.create({
-      data: { title, description, createdBy: userId },
-    });
+    const post = await this.postsRepository.create(newPostDto);
     return {
-      status: 'ok',
-      message: 'Post created successfully',
+      post: this.postMapper.toGetPostDto(post),
     };
   }
 
   async deletePost(userId: number, postId: number) {
-    const post = await this.prismaService.post.findUnique({
-      where: { postId },
-    });
+    const post = await this.postsRepository.findById(postId);
     if (!post) throw new NotFoundException('Post not found');
-    if (post.createdBy != userId)
-      throw new UnauthorizedException('Unauthorized, not your post');
-    await this.prismaService.post.delete({ where: { postId } });
+    await this.postsRepository.delete(post.postId);
     return {
-      status: 'ok',
-      message: 'Post deleted successfully',
+      deletedPost: post,
     };
   }
 }

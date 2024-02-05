@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuard } from '@nestjs/passport';
-import { NewPostDto } from './dto/newPost.dto';
+import { NewPostDto } from './_utils/dto/requests/newPost.dto';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 

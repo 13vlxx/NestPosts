@@ -34,6 +34,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersRepository.create(registerDto);
+    if (!user) throw new UnauthorizedException('NON');
     return {
       user: this.usersMapper.toGetUserDto(user),
     };
@@ -41,7 +42,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    const user = await this.prismaService.user.findUnique({ where: { email } });
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new NotFoundException('User not found');
     const arePasswordMatching = await bcrypt.compare(password, user.password);
     if (!arePasswordMatching)
@@ -58,26 +59,22 @@ export class AuthService {
 
     return {
       status: 'ok',
-      body: {
-        userId: user.userId,
-        token,
-      },
+      user: this.usersMapper.toGetUserDto(user),
+      token: token,
     };
   }
 
   async deleteAccount(userId: number, deleteAccountDto: DeleteAccountDto) {
     const { password } = deleteAccountDto;
-    const user = await this.prismaService.user.findUnique({
-      where: { userId },
-    });
-    if (!user) throw new NotFoundException('User not found');
+    const user = await this.usersRepository.findById(userId);
     const arePasswordMatching = await bcrypt.compare(password, user.password);
     if (!arePasswordMatching)
       throw new UnauthorizedException("Password doesn't match");
-    await this.prismaService.user.delete({ where: { userId } });
+    await this.usersRepository.delete(userId);
     return {
       status: 'ok',
       message: 'User successfully deleted',
+      user: this.usersMapper.toGetUserDto(user),
     };
   }
 

@@ -16,4 +16,12 @@ export class UsersRepository {
       username: registerDto.username,
       password: registerDto.password,
     });
+
+  findById = (id: number) =>
+    this.usersRepository.findOneByOrFail({ userId: id });
+
+  findByEmail = (email: string) =>
+    this.usersRepository.findOneByOrFail({ email });
+
+  delete = (id: number) => this.usersRepository.delete({ userId: id });
 }

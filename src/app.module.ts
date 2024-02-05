@@ -7,6 +7,7 @@ import { CommentModule } from './comment/comment.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { User } from './users/users.schema';
+import { Post } from './post/post.schema';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { User } from './users/users.schema';
       username: 'root',
       password: '',
       database: 'test_nest',
-      entities: [User],
+      entities: [User, Post],
       synchronize: true,
     }),
     ConfigModule.forRoot({ isGlobal: true }),
